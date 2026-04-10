@@ -1,6 +1,5 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const express = require('express');
-const qrcode = require('qrcode-terminal');
 
 const app = express();
 let sessoesStatus = {};
@@ -16,7 +15,7 @@ const SESSOES = [
 ];
 
 // ==========================================
-// SERVIDOR WEB PARA MOSTAR QR CODES
+// SERVIDOR WEB PARA MOSTRAR QR CODES
 // ==========================================
 app.get('/', (req, res) => {
     let html = `
@@ -64,7 +63,7 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🌐 Painel: https://bot-whatsapp.onrender.com`));
+app.listen(PORT, () => console.log(`🌐 Painel disponível na porta ${PORT}`));
 
 // ==========================================
 // SISTEMA DE MÚLTIPLAS SESSÕES
@@ -76,17 +75,10 @@ function criarCliente(sessao) {
         authStrategy: new LocalAuth({ clientId: sessao.id }),
         puppeteer: {
             headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--disable-gpu'
-            ]
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
         }
     });
 
-    // Inicializar status
     sessoesStatus[sessao.id] = { status: "offline", qr: null, numero: null };
     let qrEnviado = false;
 
@@ -94,13 +86,8 @@ function criarCliente(sessao) {
         if (!qrEnviado) {
             console.log(`📱 [${sessao.nome}] QR Code gerado!`);
             sessoesStatus[sessao.id] = { status: "waiting", qr: qr, numero: null };
-            qrcode.generate(qr, { small: true });
             qrEnviado = true;
         }
-    });
-
-    client.on('authenticated', () => {
-        console.log(`🔐 [${sessao.nome}] Autenticado!`);
     });
 
     client.on('ready', async () => {
@@ -120,9 +107,7 @@ function criarCliente(sessao) {
         qrEnviado = false;
     });
 
-    // ==========================================
-    // COMANDOS DO BOT (5000+ comandos)
-    // ==========================================
+    // COMANDOS
     client.on('message_create', async (msg) => {
         if (!msg.body.startsWith('!')) return;
         
@@ -132,56 +117,28 @@ function criarCliente(sessao) {
         
         let resposta = "";
 
-        // Comandos básicos
         if (cmd === 'ping') resposta = "🏓 Pong!";
-        else if (cmd === 'info') resposta = `🤖 Bot ${sessao.nome} | 5000+ comandos`;
+        else if (cmd === 'info') resposta = `🤖 ${sessao.nome} | 5000+ comandos`;
         else if (cmd === 'hora') resposta = `🕒 ${new Date().toLocaleString('pt-BR')}`;
         else if (cmd === 'moeda') resposta = `🪙 ${Math.random() < 0.5 ? 'CARA' : 'COROA'}`;
         else if (cmd === 'dado') resposta = `🎲 ${Math.floor(Math.random() * 6) + 1}`;
         else if (cmd === 'beijo') resposta = `💋 ${args || 'Alguém'} recebeu um beijo! 😘`;
         else if (cmd === 'abraco') resposta = `🤗 ${args || 'Alguém'} ganhou um abraço!`;
-        else if (cmd === 'elogio') {
-            const elogios = ["Você é incrível!", "Que pessoa maravilhosa!", "Você ilumina o ambiente!", "É um prazer te conhecer!", "Você é muito especial!"];
-            resposta = `💖 ${elogios[Math.floor(Math.random() * elogios.length)]}`;
-        }
-        else if (cmd === 'piada') {
-            const piadas = ["Por que o programador não toma café? Porque ele já tem Java.", "Qual o animal mais antigo? A zebra, porque ainda está em preto e branco.", "O que o zero disse para o oito? Que cinto bonito!", "Por que o livro de matemática ficou triste? Porque tinha muitos problemas."];
-            resposta = `😂 ${piadas[Math.floor(Math.random() * piadas.length)]}`;
-        }
-        else if (cmd === 'fatos') {
-            const fatos = ["Elefantes não pulam.", "Bananas são bagas, morangos não.", "Terra ganha 40k toneladas de poeira cósmica/ano.", "Girafas têm 7 vértebras no pescoço (igual humanos)."];
-            resposta = `🔍 ${fatos[Math.floor(Math.random() * fatos.length)]}`;
-        }
-        else if (cmd === 'ranksigma') resposta = `🦍 ${args || 'Você'} é ${Math.floor(Math.random() * 101)}% SIGMA! ${Math.random() > 0.7 ? '🗿 Lenda' : '💪 Continue'}`;
-        else if (cmd === 'rankgay') resposta = `🌈 ${args || 'Você'} é ${Math.floor(Math.random() * 101)}% GAY! ${Math.random() > 0.7 ? '🏳️‍🌈 Arrasou' : '😏 Normal'}`;
-        else if (cmd === 'rankbeta') resposta = `🐑 ${args || 'Você'} é ${Math.floor(Math.random() * 101)}% BETA! ${Math.random() > 0.7 ? '😢 Melhore' : '👑 Sigma'}`;
-        else if (cmd === 'rankcorno') resposta = `🦌 ${args || 'Você'} é ${Math.floor(Math.random() * 101)}% CORNO! ${Math.random() > 0.7 ? '🔥 Chifrudo' : '💚 Seguro'}`;
-        else if (cmd === 'rankgado') resposta = `🐮 ${args || 'Você'} é ${Math.floor(Math.random() * 101)}% GADO! ${Math.random() > 0.7 ? 'Muuu!' : '🐂 Ainda tem salvação'}`;
-        else if (cmd === 'rankmacho') resposta = `💪 ${args || 'Você'} é ${Math.floor(Math.random() * 101)}% MACHO! ${Math.random() > 0.7 ? '🏋️ Shape' : '🍗 Frango'}`;
-        else if (cmd === 'rankinteligencia') resposta = `🧠 ${args || 'Você'} tem ${Math.floor(Math.random() * 101)}% de inteligência!`;
-        else if (cmd === 'criarrank') {
-            const [nome, tipo] = args.split(' ');
-            if (!nome || !tipo) resposta = "❌ Use: !criarrank nome [porcentagem/nota]";
-            else if (tipo !== 'porcentagem' && tipo !== 'nota') resposta = "❌ Tipo inválido!";
-            else resposta = `✅ Rank "${nome}" criado! Use !${nome} @usuario`;
-        }
+        else if (cmd === 'ranksigma') resposta = `🦍 ${args || 'Você'} é ${Math.floor(Math.random() * 101)}% SIGMA!`;
+        else if (cmd === 'rankgay') resposta = `🌈 ${args || 'Você'} é ${Math.floor(Math.random() * 101)}% GAY!`;
+        else if (cmd === 'rankbeta') resposta = `🐑 ${args || 'Você'} é ${Math.floor(Math.random() * 101)}% BETA!`;
+        else if (cmd === 'rankcorno') resposta = `🦌 ${args || 'Você'} é ${Math.floor(Math.random() * 101)}% CORNO!`;
         else if (cmd === 'menu') {
             resposta = `┌─────────────────────────────────────────────┐
 │            🤖 ${sessao.nome.toUpperCase()} - 5000+ COMANDOS      │
 ├─────────────────────────────────────────────┤
-│ 🔹 !ping, !info, !hora, !moeda, !dado       │
-│ 🔹 !beijo, !abraco, !elogio, !piada, !fatos │
-│ 🔹 !ranksigma, !rankgay, !rankbeta          │
-│ 🔹 !rankcorno, !rankgado, !rankmacho        │
-│ 🔹 !rankinteligencia, !criarrank            │
-├─────────────────────────────────────────────┤
-│ ✨ Crie seu rank: !criarrank nome porcentagem│
+│ !ping, !info, !hora, !moeda, !dado          │
+│ !beijo, !abraco, !ranksigma, !rankgay       │
+│ !rankbeta, !rankcorno                       │
 └─────────────────────────────────────────────┘
 ▂▄▅▆▇█ 𝕱𝖗𝖔𝖘𝖙𝕭𝖞𝖙𝖊DEV █▇▆▅▄▂`;
         }
-        else {
-            resposta = `❌ Comando desconhecido: ${cmd}\nDigite !menu`;
-        }
+        else resposta = `❌ Comando desconhecido: ${cmd}\nDigite !menu`;
 
         if (resposta) await chat.sendMessage(resposta);
     });
