@@ -23,6 +23,9 @@ RUN npm install
 # Copiar o resto do código
 COPY . .
 
+# Criar diretório para perfis/sessões
+RUN mkdir -p /app/profiles
+
 # Expor a porta
 EXPOSE 10000
 
