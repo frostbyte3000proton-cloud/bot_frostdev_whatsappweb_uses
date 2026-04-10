@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: bot-whatsapp
+    runtime: image
+    repo: https://github.com/frostbyte3000proton-cloud/bot_frostdev_whatsappweb_uses
+    plan: free
+    buildCommand: chmod +x .render-build.sh && ./.render-build.sh
+    startCommand: node bot.js
+    envVars:
+      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+        value: true
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /usr/bin/chromium
